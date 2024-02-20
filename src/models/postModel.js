@@ -3,9 +3,10 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const postSchema = new Schema({
+  isSpoiler: { type: Boolean, default: false },
   type: {
     type: String,
-    enum: ["News", "Meme", "Game Shot", "Thread"],
+    enum: ["News", "Meme", "Game Shot", "Help"],
     default: "General",
   },
   game: { type: Schema.Types.ObjectId, ref: "Games" },

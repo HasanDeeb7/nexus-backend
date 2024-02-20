@@ -12,7 +12,7 @@ const transporter = createTransport({
 });
 export async function sendVerificationCode(receiver, code) {
   await transporter.sendMail({
-    from: "noreply@flowblog.com",
+    from: "noreply@flowblog.com", 
     to: receiver,
     subject: "Verification Code",
     html: ` <div style="display: flex;flex-direction: column; align-items: center; justify-content: center, width: 100%; padding: 0 10%">

@@ -22,7 +22,7 @@ export const signIn = async (req, res) => {
       if (decoded) {
         const user = await User.findOne({
           _id: decoded.id,
-        });
+        }).populate("games");
         if (user) {
           return res.json(user);
         }
@@ -266,6 +266,24 @@ export async function uploadAvatar(req, res) {
       } else {
         return res.status(404).json({ error: "Error getting user data" });
       }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function addGames(req, res) {
+  const { games } = req.body;
+  console.log(games);
+  try {
+    const response = await User.findByIdAndUpdate(
+      { _id: req.user.id },
+      { games: games }
+    );
+    if (response) {
+      res.json(response);
+    } else {
+      res.status(500).json({ error: "Error adding games" });
     }
   } catch (error) {
     console.log(error);

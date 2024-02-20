@@ -3,7 +3,7 @@ import Post from "../models/postModel.js";
 import User from "../models/userModel.js";
 
 export async function createPost(req, res) {
-  const { caption, game, type } = req.body;
+  const { caption, game, type, isSpoiler } = req.body;
   const image = req.file?.filename;
   //   const user = await User.findById(req.user.id);
   try {
@@ -13,6 +13,7 @@ export async function createPost(req, res) {
       type: type,
       image: image,
       user: req.user.id,
+      isSpoiler: isSpoiler,
     });
     if (post) {
       await User.findOneAndUpdate(

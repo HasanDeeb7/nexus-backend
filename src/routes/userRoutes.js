@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   addFriend,
+  addGames,
   deleteUser,
   getFriends,
   getOneUser,
@@ -29,3 +30,4 @@ userRouter.patch(
   authenticate,
   uploadAvatar
 );
+userRouter.patch("/add-games", authenticate, addGames);
