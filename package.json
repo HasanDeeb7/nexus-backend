@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "name": "gzone",
+  "name": "nexus",
   "version": "1.0.0",
   "description": "GZone is a gaming community",
   "main": "index.js",

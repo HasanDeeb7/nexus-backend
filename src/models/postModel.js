@@ -13,8 +13,8 @@ const postSchema = new Schema({
   comments: [{ type: Schema.Types.ObjectId, ref: "Comments" }],
   reactions: [
     new Schema({
-      type: { type: String, enum: ["Like", "Dislike", "Love", "Funny", "Sad"] },
-      user: { type: Object },
+      type: { type: String, enum: ["Like", "Respect"] },
+      user: { type: String },
     }),
   ],
   caption: { type: String },
