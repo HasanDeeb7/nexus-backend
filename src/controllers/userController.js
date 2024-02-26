@@ -3,6 +3,7 @@ import User from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import "dotenv/config";
 import jwt from "jsonwebtoken";
+import Platform from "../models/platformModel.js";
 
 function removeImage(image) {
   fs.unlinkSync(`public/images/${image}`, (err) => {
@@ -22,7 +23,7 @@ export const signIn = async (req, res) => {
       if (decoded) {
         const user = await User.findOne({
           _id: decoded.id,
-        }).populate("games");
+        }).populate(["games", "friends", "posts"]);
         if (user) {
           return res.json(user);
         }
@@ -37,9 +38,19 @@ export const signIn = async (req, res) => {
   }
   let user;
   try {
-    user = await User.findOne({ email: email });
+    user = await User.findOne({ email: email }).populate([
+      "games",
+      "platform",
+      "friends",
+      "posts",
+    ]);
     if (!user) {
-      user = await User.findOne({ username: username });
+      user = await User.findOne({ username: username }).populate([
+        "games",
+        "platform",
+        "friends",
+        "posts",
+      ]);
       if (!user) {
         return res.status(404).json({ error: "User doesn't exist!" });
       }
@@ -74,7 +85,9 @@ export const signIn = async (req, res) => {
     res.status(500).json({ error: "Error Sign In" });
   }
 };
-
+export async function logout(req, res) {
+  res.clearCookie("accessToken").send("Logged out");
+}
 async function signUp(req, res) {
   let { firstName, lastName, username, password, email } = req.body;
   console.log(req.body);
@@ -285,6 +298,83 @@ export async function addGames(req, res) {
     } else {
       res.status(500).json({ error: "Error adding games" });
     }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function withGoogle(req, res) {
+  const { email, image, name } = req.body;
+  try {
+    const user = await User.findOne({ where: { email: email } });
+    if (user) {
+      const token = jwt.sign(
+        {
+          id: user.id,
+          role: user.role,
+          lastName: user.lastName,
+          firstName: user.firstName,
+        },
+        process.env.JWT_SECRET
+      );
+      res
+        .cookie("access_token", token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "None",
+        })
+        .status(200)
+        .json(user);
+    } else {
+      const generatedPassword =
+        Math.random().toString(36).slice(-8) +
+        Math.random().toString(36).slice(-8);
+      const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+      console.log(hashedPassword);
+      const generatedName =
+        req.body.name.split(" ").join("").toLowerCase() +
+        Math.random().toString(36).slice(-4);
+
+      const newUser = await User.create({
+        username: generatedName,
+        email: email,
+        password: hashedPassword,
+        firstName: name.split(" ")[0],
+        lastName: name.split(" ")[1],
+        avatar: image,
+      });
+
+      const token = jwt.sign(
+        {
+          id: newUser.id,
+          role: newUser.role,
+          lastName: newUser.lastName,
+          firstName: newUser.firstName,
+        },
+        process.env.JWT_SECRET
+      );
+      res
+        .cookie("access_token", token, { httpOnly: true })
+        .status(200)
+        .json(newUser);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function addPlatform(req, res) {
+  const { platformName, username } = req.body;
+  console.log(platformName);
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        $push: { platforms: { name: platformName, username: username } },
+      },
+      { new: true }
+    );
+    res.json(user);
   } catch (error) {
     console.log(error);
   }

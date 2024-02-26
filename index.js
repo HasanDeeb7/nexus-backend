@@ -8,7 +8,8 @@ import { gameRouter } from "./src/routes/gameRoutes.js";
 import { genreRouter } from "./src/routes/genreRoutes.js";
 import { verificationRouter } from "./src/routes/verificationCodeRoutes.js";
 import { postRouter } from "./src/routes/postRoutes.js";
-
+import Platform from "./src/models/platformModel.js";
+import { platformRouter } from "./src/routes/platformsRoutes.js";
 dbconnect();
 const app = express();
 const PORT = process.env.PORT;
@@ -29,6 +30,7 @@ app.use("/game", gameRouter);
 app.use("/genre", genreRouter);
 app.use("/code", verificationRouter);
 app.use("/post", postRouter);
+app.use("/platform", platformRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is listeningon port ${PORT}`);

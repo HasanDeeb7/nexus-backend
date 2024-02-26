@@ -11,7 +11,7 @@ const userSchema = Schema({
   password: { type: String, required: true },
   isVerified: { type: Boolean, default: false },
   friends: [{ type: Schema.Types.ObjectId, ref: "Users" }],
-  platform: [new Schema({ name: String, username: String })],
+  platforms: [new Schema({ name: String, username: String })],
   code: { type: Schema.Types.ObjectId, ref: "Verifications" },
   games: [{ type: Schema.Types.ObjectId, ref: "Games" }],
   posts: [{ type: Schema.Types.ObjectId, ref: "Posts" }],

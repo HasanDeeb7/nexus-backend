@@ -2,20 +2,24 @@ import { Router } from "express";
 import {
   addFriend,
   addGames,
+  addPlatform,
   deleteUser,
   getFriends,
   getOneUser,
   getUsers,
+  logout,
   signIn,
   signUp,
   updateUser,
   uploadAvatar,
+  withGoogle,
 } from "../controllers/userController.js";
 import { upload } from "../middlewares/multer.js";
 import { authenticate } from "../middlewares/authenticate.js";
 
 export const userRouter = Router();
 
+userRouter.get("/logout", logout);
 userRouter.get("/", getUsers);
 userRouter.get("/byusername", getOneUser);
 userRouter.post("/signup", signUp);
@@ -31,3 +35,5 @@ userRouter.patch(
   uploadAvatar
 );
 userRouter.patch("/add-games", authenticate, addGames);
+userRouter.patch("/add-platform", authenticate, addPlatform);
+userRouter.post("/withGoogle", withGoogle);

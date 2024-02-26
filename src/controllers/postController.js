@@ -39,10 +39,14 @@ export async function getPosts(req, res) {
     } else {
       const posts = await Post.find()
         .populate(["game", "user"])
+        .sort({ createdAt: -1 })
         .skip(req.offset)
         .limit(req.limit)
         .exec();
       if (posts) {
+        const comments = posts.map((item) => item.comments);
+        comments.reverse();
+        posts.comments = comments;
         res.json(posts);
       }
     }
@@ -54,8 +58,10 @@ export async function getPostsByUser(req, res) {
   const { userId } = req.query;
   try {
     const posts = await Post.find({ user: userId })
+      .sort({ createdAt: -1 })
       .skip(req.offset)
       .limit(req.limit)
+      .populate(["comments", "game", "user"])
       .exec();
     if (posts) {
       res.json(posts);
@@ -79,6 +85,7 @@ export async function getPostsFyp(req, res) {
       const posts = await Post.find({
         $or: [{ user: { $in: user.friends } }, { game: { $in: user.games } }],
       })
+        .sort({ createdAt: -1 })
         .populate(["game", "user"])
         .skip(req.offset)
         .limit(req.limit)
@@ -132,22 +139,17 @@ export async function addComment(req, res) {
 
       if (post) {
         const comment = await Comment.create({
-          post: post,
+          post: post._id,
           content: content,
           user: req.user.id,
         });
+
         if (comment) {
-          const updatedPost = await Post.findByIdAndUpdate(
-            postId,
-            { $push: { comments: comment._id } },
-            { new: true }
-          ).populate([
-            "comments",
-            "game",
-            "user",
-            { path: "comments", populate: "user" },
-          ]);
-          return res.json(updatedPost);
+          const comments = await Comment.findById(comment._id)
+            .populate("user")
+            .sort({ createdAt: -1 })
+            .exec();
+          return res.json(comments);
         } else {
           return res.status(400).json({ error: "Error creating comment" });
         }
@@ -163,12 +165,14 @@ export async function getOnePost(req, res) {
   const { postId } = req.query;
   try {
     if (postId) {
-      const post = await Post.findById(postId).populate([
-        "comments",
-        "game",
-        "user",
-        { path: "comments", populate: "user" },
-      ]);
+      const post = await Post.findById(postId)
+        .populate([
+          "comments",
+          "game",
+          "user",
+          { path: "comments", populate: "user" },
+        ])
+        .exec();
       if (post) {
         return res.json(post);
       } else {
@@ -190,7 +194,10 @@ export async function addReaction(req, res) {
     if (postId) {
       const post = await Post.findById(postId);
       if (post) {
-        await post.updateOne({ $push: { reactions: updatedReaction } }).exec();
+        await post
+          .updateOne({ $push: { reactions: updatedReaction } })
+          .sort({ data: -1 })
+          .exec();
         return res.json(post);
       } else {
         return res.status(404).json({ error: "Error getting post data" });
@@ -234,14 +241,28 @@ export async function likeComment(req, res) {
         { $push: { likes: req.user.id } },
         { new: true }
       ).populate("user");
-      res.json(comment);
+      const allComments = await Comment.find({ post: comment.post })
+        .sort({ createdAt: -1 })
+        .populate("user");
+      if (allComments) {
+        res.json(allComments);
+      } else {
+        res.status(404).json({ error: "Error getting comments" });
+      }
     } else if (action === "dislike") {
       const comment = await Comment.findByIdAndUpdate(
         commentId,
         { $pull: { likes: req.user.id } },
         { new: true }
       ).populate("user");
-      res.json(comment);
+      const allComments = await Comment.find({ post: comment.post })
+        .sort({ createdAt: -1 })
+        .populate("user");
+      if (allComments) {
+        res.json(allComments);
+      } else {
+        res.status(404).json({ error: "Error getting comments" });
+      }
     }
   } catch (error) {
     console.log(error);
@@ -253,16 +274,37 @@ export async function deleteComment(req, res) {
     const deletedComment = await Comment.findByIdAndDelete(commentId);
     if (deletedComment) {
       console.log("deletedComment");
-      const post = await Post.findByIdAndUpdate(postId, {
+      await Post.findByIdAndUpdate(postId, {
         $pull: { comments: commentId },
       });
-      if (!post) {
-        res.status(404).send("Error deleting Comment");
+
+      const allComments = await Comment.find({ post: postId })
+        .sort({ createdAt: -1 })
+        .populate("user");
+      if (allComments) {
+        res.json(allComments);
       } else {
-        res.json(post);
+        res.status(404).json({ error: "Error getting comments" });
       }
     } else {
       res.status(404).send("Error deleting comment");
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+export async function getComments(req, res) {
+  const { postId } = req.query;
+  console.log(postId);
+  try {
+    const comments = await Comment.find({ post: postId })
+      .sort({
+        createdAt: -1,
+      })
+      .populate(["user"]);
+    if (comments) {
+      console.log(comments);
+      res.json(comments);
     }
   } catch (error) {
     console.log(error);
