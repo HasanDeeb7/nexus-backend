@@ -170,7 +170,7 @@ export async function getOnePost(req, res) {
           "comments",
           "game",
           "user",
-          { path: "comments", populate: "user" },
+          // { path: "comments", populate: "user" },
         ])
         .exec();
       if (post) {

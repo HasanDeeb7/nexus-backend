@@ -40,14 +40,12 @@ export const signIn = async (req, res) => {
   try {
     user = await User.findOne({ email: email }).populate([
       "games",
-      "platform",
       "friends",
       "posts",
     ]);
     if (!user) {
       user = await User.findOne({ username: username }).populate([
         "games",
-        "platform",
         "friends",
         "posts",
       ]);
@@ -86,7 +84,7 @@ export const signIn = async (req, res) => {
   }
 };
 export async function logout(req, res) {
-  res.clearCookie("accessToken").send("Logged out");
+  res.clearCookie("access_token").send("Logged out");
 }
 async function signUp(req, res) {
   let { firstName, lastName, username, password, email } = req.body;
@@ -224,13 +222,16 @@ async function deleteUser(req, res) {
 
 async function getOneUser(req, res) {
   try {
-    const data = await User.findOne({ _id: req.query.id });
+    const data = await User.findOne({ username: req.query.username }).populate([
+      "posts",
+      "games",
+    ]);
     if (data) {
       return res.json(data);
     }
     return res
       .status(404)
-      .json({ error: `User with the id ${req.query.id} is not found!` });
+      .json({ error: `User with the id ${req.query.username} is not found!` });
   } catch (error) {
     console.log(error);
   }
@@ -248,15 +249,18 @@ export async function getFriends(req, res) {
   }
 }
 export async function addFriend(req, res) {
-  const { userId } = req.body;
+  const { username } = req.body;
   try {
     const user = await User.findById(req.user.id);
-    const targetUser = await User.findById(userId);
+    const targetUser = await User.findOne({ username: username });
 
     if (user && targetUser) {
-      user.updateOne({}, { $push: { friends: targetUser._id } });
-      await user.save();
-      return res.json(user);
+      const updatedUser = await User.findOneAndUpdate(
+        { _id: req.user.id },
+        { $push: { friends: targetUser._id } },
+        { new: true }
+      ).populate("friends");
+      return res.json({ user: updatedUser, targetUser: targetUser });
     } else {
       return res.status(400).json({ error: "Error getting users data" });
     }
@@ -367,16 +371,30 @@ export async function addPlatform(req, res) {
   const { platformName, username } = req.body;
   console.log(platformName);
   try {
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
+    const user = await User.findOneAndUpdate(
       {
-        $push: { platforms: { name: platformName, username: username } },
+        _id: req.user.id,
+        "platforms.name": platformName,
+      },
+      {
+        $set: { "platforms.$.username": username },
       },
       { new: true }
     );
+    if (!user) {
+      const updatedUser = await User.findByIdAndUpdate(
+        req.user.id,
+        {
+          $push: { platforms: { name: platformName, username: username } },
+        },
+        { new: true }
+      );
+      return res.json(updatedUser);
+    }
     res.json(user);
   } catch (error) {
     console.log(error);
+    res.status(500).json({ error: "Server error" });
   }
 }
 

@@ -21,7 +21,7 @@ export const userRouter = Router();
 
 userRouter.get("/logout", logout);
 userRouter.get("/", getUsers);
-userRouter.get("/byusername", getOneUser);
+userRouter.get("/by-username", getOneUser);
 userRouter.post("/signup", signUp);
 userRouter.post("/login", signIn);
 userRouter.delete("/delete", deleteUser);
