@@ -16,16 +16,7 @@ import Game from "./src/models/gameModel.js";
 dbconnect();
 const app = express();
 const PORT = process.env.PORT;
-app.use(
-  cors({
-    origin: [
-      "https://nexus-frontend-three.vercel.app",
-      process.env.FRONTEND_ORIGIN,
-    ],
-    credentials: true,
-    optionsSuccessStatus: 200,
-  })
-);
+app.use(cors());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
