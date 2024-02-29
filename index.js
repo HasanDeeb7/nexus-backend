@@ -18,7 +18,10 @@ const app = express();
 const PORT = process.env.PORT;
 app.use(
   cors({
-    origin:'*',
+    origin: [
+      "https://nexus-frontend-three.vercel.app",
+      process.env.FRONTEND_ORIGIN,
+    ],
     credentials: true,
     optionsSuccessStatus: 200,
   })
