@@ -23,7 +23,13 @@ export const signIn = async (req, res) => {
       if (decoded) {
         const user = await User.findOne({
           _id: decoded.id,
-        }).populate(["games", "friends", "posts"]);
+        }).populate([
+          "games",
+          "friends",
+          "posts",
+          "notifications",
+          { path: "notifications", populate: ["sender", "receiver"] },
+        ]);
         if (user) {
           return res.json(user);
         }
@@ -38,16 +44,18 @@ export const signIn = async (req, res) => {
   }
   let user;
   try {
-    user = await User.findOne({ email: email }).populate([
+    user = await User.findOne({ email: username }).populate([
       "games",
       "friends",
       "posts",
+      "notifications",
     ]);
     if (!user) {
       user = await User.findOne({ username: username }).populate([
         "games",
         "friends",
         "posts",
+        "notifications",
       ]);
       if (!user) {
         return res.status(404).json({ error: "User doesn't exist!" });
@@ -69,7 +77,6 @@ export const signIn = async (req, res) => {
       process.env.JWT_SECRET
     );
     // const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(user);
     res
       .cookie("access_token", token, {
         secure: true,
@@ -88,7 +95,6 @@ export async function logout(req, res) {
 }
 async function signUp(req, res) {
   let { firstName, lastName, username, password, email } = req.body;
-  console.log(req.body);
   let image;
   if (!req.file) {
     req.file = { filename: "user.png" };
@@ -98,7 +104,6 @@ async function signUp(req, res) {
   }
 
   try {
-    console.log(req.body);
     if (!firstName || !lastName || !username || !password || !email) {
       return res.status(400).json({ message: "missing required property" });
     } else {
@@ -225,6 +230,7 @@ async function getOneUser(req, res) {
     const data = await User.findOne({ username: req.query.username }).populate([
       "posts",
       "games",
+      "friends",
     ]);
     if (data) {
       return res.json(data);
@@ -255,12 +261,32 @@ export async function addFriend(req, res) {
     const targetUser = await User.findOne({ username: username });
 
     if (user && targetUser) {
-      const updatedUser = await User.findOneAndUpdate(
-        { _id: req.user.id },
-        { $push: { friends: targetUser._id } },
-        { new: true }
-      ).populate("friends");
-      return res.json({ user: updatedUser, targetUser: targetUser });
+      let updatedUser;
+      if (user.friends.includes(targetUser._id)) {
+        // If targetUser is already a friend, remove it
+        updatedUser = await User.findOneAndUpdate(
+          { _id: req.user.id },
+          { $pull: { friends: targetUser._id } },
+          { new: true }
+        ).populate("friends");
+        return res.json({
+          action: "remove",
+          user: updatedUser,
+          targetUser: targetUser,
+        });
+      } else {
+        // If targetUser is not a friend, add it
+        updatedUser = await User.findOneAndUpdate(
+          { _id: req.user.id },
+          { $push: { friends: targetUser._id } },
+          { new: true }
+        ).populate("friends");
+        return res.json({
+          action: "add",
+          user: updatedUser,
+          targetUser: targetUser,
+        });
+      }
     } else {
       return res.status(400).json({ error: "Error getting users data" });
     }
@@ -291,7 +317,6 @@ export async function uploadAvatar(req, res) {
 
 export async function addGames(req, res) {
   const { games } = req.body;
-  console.log(games);
   try {
     const response = await User.findByIdAndUpdate(
       { _id: req.user.id },
@@ -334,7 +359,6 @@ export async function withGoogle(req, res) {
         Math.random().toString(36).slice(-8) +
         Math.random().toString(36).slice(-8);
       const hashedPassword = await bcrypt.hash(generatedPassword, 10);
-      console.log(hashedPassword);
       const generatedName =
         req.body.name.split(" ").join("").toLowerCase() +
         Math.random().toString(36).slice(-4);
@@ -369,7 +393,6 @@ export async function withGoogle(req, res) {
 
 export async function addPlatform(req, res) {
   const { platformName, username } = req.body;
-  console.log(platformName);
   try {
     const user = await User.findOneAndUpdate(
       {

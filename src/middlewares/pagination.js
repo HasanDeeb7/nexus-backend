@@ -4,7 +4,6 @@ export function paginate(req, res, next) {
   if (pageSize && pageNumber) {
     const offset = pageSize * (pageNumber - 1);
     const limit = pageSize;
-    console.log(offset, Number(limit));
     req.offset = offset;
     req.limit = Number(limit);
     next();

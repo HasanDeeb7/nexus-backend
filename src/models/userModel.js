@@ -16,6 +16,7 @@ const userSchema = Schema({
   games: [{ type: Schema.Types.ObjectId, ref: "Games" }],
   posts: [{ type: Schema.Types.ObjectId, ref: "Posts" }],
   rooms: [{ type: Schema.Types.ObjectId, ref: "Rooms" }],
+  notifications: [{ type: Schema.Types.ObjectId, ref: "Notifications" }],
 });
 
 const User = model("Users", userSchema);

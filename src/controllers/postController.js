@@ -5,8 +5,7 @@ import User from "../models/userModel.js";
 export async function createPost(req, res) {
   const { caption, game, type, isSpoiler } = req.body;
   const image = req.file?.filename;
-  console.log(req.file);
-  console.log(req.body.image);
+
   if (!caption || !game || !type) return res.status(400).send("Missing fields");
   try {
     const post = await Post.create({
@@ -74,7 +73,6 @@ export async function getPostsByUser(req, res) {
 }
 export async function getPostsFyp(req, res) {
   const userId = req.user.id;
-  console.log("first");
   try {
     const user = await User.findById(userId)
       .populate(["games", "friends"])
@@ -295,7 +293,6 @@ export async function deleteComment(req, res) {
 }
 export async function getComments(req, res) {
   const { postId } = req.query;
-  console.log(postId);
   try {
     const comments = await Comment.find({ post: postId })
       .sort({

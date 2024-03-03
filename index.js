@@ -13,14 +13,21 @@ import { platformRouter } from "./src/routes/platformsRoutes.js";
 import Post from "./src/models/postModel.js";
 import User from "./src/models/userModel.js";
 import Game from "./src/models/gameModel.js";
+import { Server } from "socket.io";
+import { createServer } from "http";
+import { sendNotification } from "./src/utils/notifications.js";
+import { notificationRouter } from "./src/routes/notificationRoutes.js";
+
 dbconnect();
 const app = express();
+
 const PORT = process.env.PORT;
 app.use(
   cors({
     origin: [
       "https://nexus-frontend-three.vercel.app",
       process.env.FRONTEND_ORIGIN,
+      "http://localhost:5173",
     ],
     credentials: true,
     optionsSuccessStatus: 200,
@@ -37,15 +44,15 @@ app.use("/genre", genreRouter);
 app.use("/code", verificationRouter);
 app.use("/post", postRouter);
 app.use("/platform", platformRouter);
+app.use("/notification", notificationRouter);
 app.get("/search", async (req, res) => {
   const { query } = req.query;
-  console.log(query);
   try {
     const posts = await Post.find({
       $or: [
         { caption: { $regex: query, $options: "i" } }, // Search in posts where type is 'game' and caption includes the query
       ],
-    });
+    }).populate("user");
 
     // Search in users
     const users = await User.find({
@@ -65,6 +72,46 @@ app.get("/search", async (req, res) => {
     console.log(error);
   }
 });
+
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: { origin: process.env.httpServer, credentials: true },
+});
+
+io.on("connection", (socket) => {
+  console.log("a user connected");
+
+  socket.on("join-room", (room) => {
+    socket.join(room);
+    console.log("joined-room : " + room);
+  });
+
+  socket.on("friend-add", async ({ user, targetUser }) => {
+    console.log("Emitting friend-add-receive event to room: " + targetUser);
+    const notification = await sendNotification(
+      `${user.username} just added you as a teammate`,
+      user._id,
+      targetUser
+    );
+    if (notification) {
+      io.to(targetUser).emit("friend-add-receive", {
+        message: notification.message,
+        user: notification.user,
+        sender: user.username,
+      });
+      console.log(
+        "Successfully emitted friend-add-receive event to room: " + targetUser
+      );
+    }
+  });
+  socket.on("broadcast-message", ({ username, message }) => {
+    console.log("broadcast");
+    socket.broadcast.emit("receive-broadcast-message", { username, message });
+  });
+});
+
+httpServer.listen(3001);
+
 app.listen(PORT, () => {
   console.log(`Server is listeningon port ${PORT}`);
 });

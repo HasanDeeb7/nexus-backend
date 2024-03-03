@@ -7,7 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js",
-    "build" : "npm i"
+    "build": "npm i"
   },
   "author": "Hasan Deeb",
   "license": "ISC",
@@ -24,7 +24,8 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.9",
     "nodemailer-smtp-transport": "^2.7.4",
-    "simplesmtp": "^0.3.35"
+    "simplesmtp": "^0.3.35",
+    "socket.io": "^4.7.4"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"

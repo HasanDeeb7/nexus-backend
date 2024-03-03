@@ -27,7 +27,6 @@ export async function verifyCode(req, res) {
   if (!user) {
     return res.status(404).json({ message: "User not found!" });
   }
-  console.log(user);
   if (user.code?.verificationCode === code) {
     user.isVerified = true;
     res.json({ message: "Code matches" });

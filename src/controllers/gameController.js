@@ -34,7 +34,6 @@ export async function createGame(req, res) {
 export async function updateGame(req, res) {
   const { genres, name, _id } = req.body;
   const image = req.file.filename;
-  console.log(req.file);
 
   try {
     const game = await Game.findById(_id);
