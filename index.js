@@ -31,6 +31,7 @@ app.use(
       "https://nexus-frontend-three.vercel.app",
       process.env.FRONTEND_ORIGIN,
       "http://localhost:5173",
+      "*",
     ],
     credentials: true,
     optionsSuccessStatus: 200,
