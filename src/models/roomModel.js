@@ -4,7 +4,7 @@ const { Schema, model } = mongoose;
 
 const roomSchema = new Schema({
   users: [{ type: Schema.Types.ObjectId, ref: "Users" }],
-  messages: String,
+  messages: [{ type: Schema.Types.ObjectId, ref: "Messages" }],
 });
 
 const Room = model("Rooms", roomSchema);

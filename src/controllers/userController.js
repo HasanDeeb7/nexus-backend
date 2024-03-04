@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import "dotenv/config";
 import jwt from "jsonwebtoken";
 import Platform from "../models/platformModel.js";
+import { createRoom } from "../utils/chat.js";
 
 function removeImage(image) {
   fs.unlinkSync(`public/images/${image}`, (err) => {
@@ -259,7 +260,6 @@ export async function addFriend(req, res) {
   try {
     const user = await User.findById(req.user.id);
     const targetUser = await User.findOne({ username: username });
-
     if (user && targetUser) {
       let updatedUser;
       if (user.friends.includes(targetUser._id)) {
@@ -269,6 +269,7 @@ export async function addFriend(req, res) {
           { $pull: { friends: targetUser._id } },
           { new: true }
         ).populate("friends");
+
         return res.json({
           action: "remove",
           user: updatedUser,
@@ -276,11 +277,27 @@ export async function addFriend(req, res) {
         });
       } else {
         // If targetUser is not a friend, add it
+        const room = await createRoom(user, targetUser);
+
         updatedUser = await User.findOneAndUpdate(
           { _id: req.user.id },
           { $push: { friends: targetUser._id } },
           { new: true }
         ).populate("friends");
+
+        if (room) {
+          updatedUser = await User.findOneAndUpdate(
+            { _id: req.user.id },
+            { $addToSet: { rooms: room._id } }, // Using $addToSet to avoid duplicates
+            { new: true }
+          ).populate("friends");
+          await targetUser.updateOne(
+            {},
+            { $addToSet: { rooms: room._id } }, // Using $addToSet to avoid duplicates
+            { new: true }
+          );
+        }
+
         return res.json({
           action: "add",
           user: updatedUser,

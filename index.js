@@ -17,6 +17,8 @@ import { Server } from "socket.io";
 import { createServer } from "http";
 import { sendNotification } from "./src/utils/notifications.js";
 import { notificationRouter } from "./src/routes/notificationRoutes.js";
+import { roomRouter } from "./src/routes/roomRoutes.js";
+import { saveMessage } from "./src/utils/chat.js";
 
 dbconnect();
 const app = express();
@@ -45,6 +47,7 @@ app.use("/code", verificationRouter);
 app.use("/post", postRouter);
 app.use("/platform", platformRouter);
 app.use("/notification", notificationRouter);
+app.use("/room", roomRouter);
 app.get("/search", async (req, res) => {
   const { query } = req.query;
   try {
@@ -74,9 +77,7 @@ app.get("/search", async (req, res) => {
 });
 
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: { origin: process.env.httpServer, credentials: true },
-});
+const io = new Server(httpServer);
 
 io.on("connection", (socket) => {
   console.log("a user connected");
@@ -105,9 +106,27 @@ io.on("connection", (socket) => {
     }
   });
   socket.on("broadcast-message", ({ username, message }) => {
-    console.log("broadcast");
     socket.broadcast.emit("receive-broadcast-message", { username, message });
   });
+  socket.on(
+    "send-message",
+    async ({ sender, receiver, message, createdAt }) => {
+      console.log(sender.username, receiver, message);
+      const savedMessage = await saveMessage(sender, receiver);
+      if (savedMessage.room) {
+        socket.to(receiver).emit("receive-message", {
+          message: message,
+          sender: sender,
+          room: savedMessage.room._id,
+          createdAt: createdAt,
+        });
+        socket.to(receiver).emit("new-message-notification", {
+          user: sender,
+          message: message,
+        });
+      }
+    }
+  );
 });
 
 httpServer.listen(3001);
