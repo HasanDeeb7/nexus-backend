@@ -19,6 +19,7 @@ import { sendNotification } from "./src/utils/notifications.js";
 import { notificationRouter } from "./src/routes/notificationRoutes.js";
 import { roomRouter } from "./src/routes/roomRoutes.js";
 import { saveMessage } from "./src/utils/chat.js";
+import { Server as socketServer } from "socket.io";
 
 dbconnect();
 const app = express();
@@ -77,8 +78,8 @@ app.get("/search", async (req, res) => {
 });
 
 const httpServer = createServer(app);
-const io = new Server(httpServer);
-
+// const io = new Server(httpServer);
+const io = new socketServer(httpServer);
 io.on("connection", (socket) => {
   console.log("a user connected");
 
@@ -129,8 +130,8 @@ io.on("connection", (socket) => {
   );
 });
 
-httpServer.listen(3001);
+// httpServer.listen(3001);
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Server is listeningon port ${PORT}`);
 });
