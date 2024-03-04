@@ -80,7 +80,12 @@ app.get("/search", async (req, res) => {
 
 const httpServer = createServer(app);
 // const io = new Server(httpServer);
-const io = new socketServer(httpServer);
+const io = new socketServer(httpServer, {
+  cors: {
+    origin: "*",
+    credentials: true,
+  },
+});
 io.on("connection", (socket) => {
   console.log("a user connected");
 
