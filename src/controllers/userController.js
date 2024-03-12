@@ -80,9 +80,11 @@ export const signIn = async (req, res) => {
     // const decoded = jwt.verify(token, process.env.JWT_SECRET);
     res
       .cookie(process.env.ACCESS_TOKEN, token, {
-        secure: true,
         httpOnly: true,
+        path: "/",
+        secure: true,
         sameSite: "None",
+        maxAge: 3600000,
       })
       .status(200)
       .json(user);
