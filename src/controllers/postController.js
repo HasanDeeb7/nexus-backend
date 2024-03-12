@@ -6,7 +6,7 @@ export async function createPost(req, res) {
   const { caption, game, type, isSpoiler } = req.body;
   const image = req.file?.filename;
 
-  if (!caption || !game || !type) return res.status(400).send("Missing fields");
+  if (!game || !type) return res.status(400).send("Missing fields");
   try {
     const post = await Post.create({
       caption: caption,

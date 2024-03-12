@@ -79,7 +79,7 @@ export const signIn = async (req, res) => {
     );
     // const decoded = jwt.verify(token, process.env.JWT_SECRET);
     res
-      .cookie("access_token", token, {
+      .cookie(process.env.ACCESS_TOKEN, token, {
         secure: true,
         httpOnly: true,
         sameSite: "None",
@@ -92,7 +92,7 @@ export const signIn = async (req, res) => {
   }
 };
 export async function logout(req, res) {
-  res.clearCookie("access_token").send("Logged out");
+  res.clearCookie(process.env.ACCESS_TOKEN, { httpOnly: true }).send("Logged out");
 }
 async function signUp(req, res) {
   let { firstName, lastName, username, password, email } = req.body;
@@ -152,7 +152,7 @@ async function signUp(req, res) {
               process.env.JWT_SECRET
             );
             res
-              .cookie("access_token", token, {
+              .cookie(process.env.ACCESS_TOKEN, token, {
                 secure: true,
                 httpOnly: true,
                 sameSite: "None",
@@ -364,7 +364,7 @@ export async function withGoogle(req, res) {
         process.env.JWT_SECRET
       );
       res
-        .cookie("access_token", token, {
+        .cookie(process.env.ACCESS_TOKEN, token, {
           httpOnly: true,
           secure: true,
           sameSite: "None",
@@ -399,7 +399,7 @@ export async function withGoogle(req, res) {
         process.env.JWT_SECRET
       );
       res
-        .cookie("access_token", token, { httpOnly: true })
+        .cookie(process.env.ACCESS_TOKEN, token, { httpOnly: true })
         .status(200)
         .json(newUser);
     }

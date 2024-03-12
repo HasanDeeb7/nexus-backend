@@ -82,7 +82,7 @@ const httpServer = createServer(app);
 // const io = new Server(httpServer);
 const io = new socketServer(httpServer, {
   cors: {
-    origin: "*",
+    origin: ["*", process.env.FRONTEND_ORIGIN],
     credentials: true,
   },
 });
@@ -112,14 +112,18 @@ io.on("connection", (socket) => {
       );
     }
   });
-  socket.on("broadcast-message", ({ username, message }) => {
-    socket.broadcast.emit("receive-broadcast-message", { username, message });
+  socket.on("broadcast-message", ({ username, message, time }) => {
+    socket.broadcast.emit("receive-broadcast-message", {
+      username,
+      message,
+      time,
+    });
   });
   socket.on(
     "send-message",
     async ({ sender, receiver, message, createdAt }) => {
       console.log(sender.username, receiver, message);
-      const savedMessage = await saveMessage(sender, receiver);
+      const savedMessage = await saveMessage(sender, receiver, message);
       if (savedMessage.room) {
         socket.to(receiver).emit("receive-message", {
           message: message,

@@ -7,7 +7,7 @@ const postSchema = new Schema(
     isSpoiler: { type: Boolean, default: false },
     type: {
       type: String,
-      enum: ["News", "Meme", "Game Shot", "Help"],
+      enum: ["News", "Meme", "Game Shot", "Help", "General"],
       default: "General",
     },
     game: { type: Schema.Types.ObjectId, ref: "Games" },
