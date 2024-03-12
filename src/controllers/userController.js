@@ -92,7 +92,13 @@ export const signIn = async (req, res) => {
   }
 };
 export async function logout(req, res) {
-  res.clearCookie(process.env.ACCESS_TOKEN, { httpOnly: true }).send("Logged out");
+  res
+    .clearCookie(process.env.ACCESS_TOKEN, {
+      httpOnly: true,
+      domain: "nexus-backend-p3y6.onrender.com",
+      path: "/",
+    })
+    .send("Logged out");
 }
 async function signUp(req, res) {
   let { firstName, lastName, username, password, email } = req.body;
