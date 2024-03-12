@@ -97,8 +97,6 @@ export async function logout(req, res) {
   res
     .clearCookie(process.env.ACCESS_TOKEN, {
       httpOnly: true,
-      domain: "nexus-backend-p3y6.onrender.com",
-      path: "/",
     })
     .send("Logged out");
 }
