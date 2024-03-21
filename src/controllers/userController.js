@@ -79,12 +79,10 @@ export const signIn = async (req, res) => {
     );
     // const decoded = jwt.verify(token, process.env.JWT_SECRET);
     res
-      .cookie(process.env.ACCESS_TOKEN, token, {
-        httpOnly: true,
-        path: "/",
+      .cookie("access_token", token, {
         secure: true,
+        httpOnly: true,
         sameSite: "None",
-        maxAge: 3600000,
       })
       .status(200)
       .json(user);
@@ -94,11 +92,7 @@ export const signIn = async (req, res) => {
   }
 };
 export async function logout(req, res) {
-  res
-    .clearCookie(process.env.ACCESS_TOKEN, {
-      httpOnly: true,
-    })
-    .send("Logged out");
+  res.clearCookie("access_token").send("Logged out");
 }
 async function signUp(req, res) {
   let { firstName, lastName, username, password, email } = req.body;
@@ -158,7 +152,7 @@ async function signUp(req, res) {
               process.env.JWT_SECRET
             );
             res
-              .cookie(process.env.ACCESS_TOKEN, token, {
+              .cookie("access_token", token, {
                 secure: true,
                 httpOnly: true,
                 sameSite: "None",
@@ -265,7 +259,9 @@ export async function addFriend(req, res) {
   const { username } = req.body;
   try {
     const user = await User.findById(req.user.id);
-    const targetUser = await User.findOne({ username: username });
+    const targetUser = await User.findOne({ username: username }).populate(
+      "friends"
+    );
     if (user && targetUser) {
       let updatedUser;
       if (user.friends.includes(targetUser._id)) {
@@ -370,7 +366,7 @@ export async function withGoogle(req, res) {
         process.env.JWT_SECRET
       );
       res
-        .cookie(process.env.ACCESS_TOKEN, token, {
+        .cookie("access_token", token, {
           httpOnly: true,
           secure: true,
           sameSite: "None",
@@ -405,7 +401,7 @@ export async function withGoogle(req, res) {
         process.env.JWT_SECRET
       );
       res
-        .cookie(process.env.ACCESS_TOKEN, token, { httpOnly: true })
+        .cookie("access_token", token, { httpOnly: true })
         .status(200)
         .json(newUser);
     }

@@ -57,7 +57,7 @@ app.get("/search", async (req, res) => {
       $or: [
         { caption: { $regex: query, $options: "i" } }, // Search in posts where type is 'game' and caption includes the query
       ],
-    }).populate("user");
+    }).populate(["user", "game"]);
 
     // Search in users
     const users = await User.find({

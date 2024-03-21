@@ -5,6 +5,7 @@ import {
   createPost,
   deleteComment,
   deletePost,
+  editPost,
   getComments,
   getOnePost,
   getPosts,
@@ -31,5 +32,6 @@ postRouter.patch("/comment", authenticate, addComment);
 postRouter.patch("/react", authenticate, addReaction);
 postRouter.patch("/remove-reaction", authenticate, removeReaction);
 postRouter.patch("/like-comment", authenticate, likeComment);
+postRouter.patch("/edit", upload.single("image"), authenticate, editPost);
 postRouter.delete("/delete-comment", authenticate, deleteComment);
 postRouter.get("/get-comments", authenticate, getComments);

@@ -165,7 +165,6 @@ export async function getOnePost(req, res) {
     if (postId) {
       const post = await Post.findById(postId)
         .populate([
-          "comments",
           "game",
           "user",
           // { path: "comments", populate: "user" },
@@ -305,5 +304,25 @@ export async function getComments(req, res) {
     }
   } catch (error) {
     console.log(error);
+  }
+}
+export async function editPost(req, res) {
+  const { postId, caption, isSpoiler, game, postType } = req.body;
+  const image = req.file?.filename;
+  try {
+    let updatedData = { postId, caption, isSpoiler, game, type: postType };
+    if (image) {
+      updatedData.image = image;
+    }
+    console.log(updatedData.image);
+    const updatedPost = await Post.findByIdAndUpdate(postId, updatedData);
+    if (updatedPost) {
+      return res.json(updatedPost);
+    } else {
+      return res.status(404).json({ message: "Error Finding Post" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ message: "Error Updating Post" });
   }
 }
