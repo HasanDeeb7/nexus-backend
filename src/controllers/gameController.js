@@ -12,8 +12,7 @@ function removeImage(image) {
 
 export async function createGame(req, res) {
   const { genres, name } = req.body;
-  const image = req.file.pathname;
-
+  const image = req.file.filename;
   try {
     const game = await Game.create({
       name: name,

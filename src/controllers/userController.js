@@ -5,6 +5,7 @@ import "dotenv/config";
 import jwt from "jsonwebtoken";
 import Platform from "../models/platformModel.js";
 import { createRoom } from "../utils/chat.js";
+import Game from "../models/gameModel.js";
 
 function removeImage(image) {
   fs.unlinkSync(`public/images/${image}`, (err) => {
@@ -340,6 +341,14 @@ export async function addGames(req, res) {
     const response = await User.findByIdAndUpdate(
       { _id: req.user.id },
       { games: games }
+    );
+    Promise.all(
+      games.map(
+        async (gameId) =>
+          await Game.findByIdAndUpdate(gameId, {
+            $addToSet: { users: req.user.id },
+          })
+      )
     );
     if (response) {
       res.json(response);

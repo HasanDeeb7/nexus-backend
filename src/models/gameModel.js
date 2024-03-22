@@ -8,7 +8,7 @@ const gameSchema = new Schema({
   platforms: [String],
   image: String,
   genres: [{ type: Schema.Types.ObjectId, ref: "Genres" }],
-  users: { type: Schema.Types.ObjectId, ref: "User" },
+  users: [{ type: Schema.Types.ObjectId, ref: "User" }],
   posts: { type: Schema.Types.ObjectId, ref: "Posts" },
 });
 
