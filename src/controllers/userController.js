@@ -92,9 +92,11 @@ export const signIn = async (req, res) => {
     res.status(500).json({ error: "Error Sign In" });
   }
 };
+
 export async function logout(req, res) {
-  res.clearCookie("access_token").send("Logged out");
+  res.clear("access_token").send("Logged out");
 }
+
 async function signUp(req, res) {
   let { firstName, lastName, username, password, email } = req.body;
   let image;
