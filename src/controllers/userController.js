@@ -94,7 +94,7 @@ export const signIn = async (req, res) => {
 };
 
 export async function logout(req, res) {
-res.clearCookie("access_token", { httpOnly: true, path: "/", maxAge: -1 }).send("Logged out");
+res.clearCookie("access_token", { httpOnly: true, path: "/", maxAge: -1,  sameSite: "None", }).send("Logged out");
 }
 
 async function signUp(req, res) {
